@@ -1,11 +1,13 @@
 #!/usr/bin/python
-import os, argparse
+import os, argparse, math
 from PIL import Image
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument("input", type=str)
 parser.add_argument("--height", type=float, default=32.0, help="|")
-parser.add_argument("--grid_step", type=float, default=32.0, help="|")
+parser.add_argument("--unit_size", type=float, default=32.0, help="|")
+parser.add_argument("--grid_snap_step", type=float, default=0.125, help="|")
+parser.add_argument("--disable_grid_snap", action="store_true", help="|")
 parser.add_argument("--classname", type=str, default="func_detail", help="|")
 parser.add_argument("--material", type=str, default="__TB_empty", help="|")
 parser.add_argument("--skip_material", type=str, default="SKIP", help="|")
@@ -17,17 +19,20 @@ parser.add_argument("--game", type=str, default="Generic", help="|")
 parser.add_argument("--output", type=str, help="|")
 arguments = parser.parse_args()
 
-# shortcuts for easier reading
-s = arguments.grid_step
-h = arguments.height
-o = -arguments.offset
-cs = arguments.chunk_size
-
 # using input file name for the output if not provided
 input_basename = os.path.basename(arguments.input)
 input_name = os.path.splitext(input_basename)[0]
 if arguments.output == None:
 	arguments.output = input_name + ".map"
+
+def grid_snap(v, s):
+	return math.floor(v / s + 0.5) * s
+
+# shortcuts for easier reading
+s = arguments.unit_size
+h = arguments.height
+o = -arguments.offset
+cs = arguments.chunk_size
 
 # trying to open input file
 input_file = None
@@ -41,7 +46,7 @@ except Exception:
 heightmap = input_file.convert("LA")
 pixels = heightmap.load()
 iw, ih = heightmap.size
-# disabling chunking 
+# disabling chunking
 cs = min(iw, ih) if cs <= 0 else cs
 
 # sanity checks
@@ -107,20 +112,27 @@ def write_brush_at(i, j):
 	h01 = h * pixels[(ix+0)%iw, (iy+1)%ih][0] / 255.0
 	h11 = h * pixels[(ix+1)%iw, (iy+1)%ih][0] / 255.0
 
+	# snapping height values
+	if not arguments.disable_grid_snap:
+		h00 = grid_snap(h00, arguments.grid_snap_step)
+		h10 = grid_snap(h10, arguments.grid_snap_step)
+		h01 = grid_snap(h01, arguments.grid_snap_step)
+		h11 = grid_snap(h11, arguments.grid_snap_step)
+
 	output_file.write("{\n")
-	output_file.write(f"( {x} {y} {o} ) ( {x} {y+s} {o} ) ( {x} {y} {h00} ) {arguments.skip_material} [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n")
-	output_file.write(f"( {x} {y} {o} ) ( {x} {y} {h00} ) ( {x+s} {y} {o} ) {arguments.skip_material} [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n")
-	output_file.write(f"( {x} {y} {o} ) ( {x+s} {y} {o} ) ( {x} {y+s} {o} ) {arguments.skip_material} [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n")
-	output_file.write(f"( {x} {y} {h00} ) ( {x} {y+s} {h01} ) ( {x+s} {y} {h10} ) {arguments.material} [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n")
-	output_file.write(f"( {x} {y+s} {o} ) ( {x+s} {y} {o} ) ( {x+s} {y} {h10} ) {arguments.skip_material} [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n")
+	output_file.write(f"( {x:g} {y:g} {o:g} ) ( {x:g} {y+s:g} {o:g} ) ( {x:g} {y:g} {h00:g} ) {arguments.skip_material} [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n")
+	output_file.write(f"( {x:g} {y:g} {o:g} ) ( {x:g} {y:g} {h00:g} ) ( {x+s:g} {y:g} {o:g} ) {arguments.skip_material} [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n")
+	output_file.write(f"( {x:g} {y:g} {o:g} ) ( {x+s:g} {y:g} {o:g} ) ( {x:g} {y+s:g} {o:g} ) {arguments.skip_material} [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n")
+	output_file.write(f"( {x:g} {y:g} {h00:g} ) ( {x:g} {y+s:g} {h01:g} ) ( {x+s:g} {y:g} {h10:g} ) {arguments.material} [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n")
+	output_file.write(f"( {x:g} {y+s:g} {o:g} ) ( {x+s:g} {y:g} {o:g} ) ( {x+s:g} {y:g} {h10:g} ) {arguments.skip_material} [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n")
 	output_file.write("}\n")
 
 	output_file.write("{\n")
-	output_file.write(f"( {x} {y+s} {o} ) ( {x+s} {y} {h10} ) ( {x+s} {y} {o} ) {arguments.skip_material} [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n")
-	output_file.write(f"( {x} {y} {o} ) ( {x+s} {y} {o} ) ( {x} {y+s} {o} ) {arguments.skip_material} [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n")
-	output_file.write(f"( {x+s} {y+s} {h11} ) ( {x+s} {y} {h10} ) ( {x} {y+s} {h01} ) {arguments.material} [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n")
-	output_file.write(f"( {x} {y+s} {o} ) ( {x+s} {y+s} {o} ) ( {x} {y+s} {h01} ) {arguments.skip_material} [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n")
-	output_file.write(f"( {x+s} {y} {o} ) ( {x+s} {y} {h10} ) ( {x+s} {y+s} {o} ) {arguments.skip_material} [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n")
+	output_file.write(f"( {x:g} {y+s:g} {o:g} ) ( {x+s:g} {y:g} {h10:g} ) ( {x+s:g} {y:g} {o:g} ) {arguments.skip_material} [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n")
+	output_file.write(f"( {x:g} {y:g} {o:g} ) ( {x+s:g} {y:g} {o:g} ) ( {x:g} {y+s:g} {o:g} ) {arguments.skip_material} [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n")
+	output_file.write(f"( {x+s:g} {y+s:g} {h11:g} ) ( {x+s:g} {y:g} {h10:g} ) ( {x:g} {y+s:g} {h01:g} ) {arguments.material} [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n")
+	output_file.write(f"( {x:g} {y+s:g} {o:g} ) ( {x+s:g} {y+s:g} {o:g} ) ( {x:g} {y+s:g} {h01:g} ) {arguments.skip_material} [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n")
+	output_file.write(f"( {x+s:g} {y:g} {o:g} ) ( {x+s:g} {y:g} {h10:g} ) ( {x+s:g} {y+s:g} {o:g} ) {arguments.skip_material} [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n")
 	output_file.write("}\n")
 
 if arguments.chunk_size > 0:
