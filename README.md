@@ -3,7 +3,7 @@
 ## Convert .obj scenes to maps
 ![obj2map.py](screenshots/obj2map.png)
 
-#### ```obj2map.py --info examples/scene.obj```
+```obj2map.py --info examples/scene.obj```
 ```
 examples/scene.obj:
 	Objects:
@@ -37,4 +37,4 @@ Size: (1280, 1280, 563.25)
 ## Convert heightmaps to maps
 ![height2map.py](screenshots/height2map.png)
 
-#### ```height2map.py --material GRASS --chunk_size 16 examples/height.png```
+```height2map.py --material GRASS --chunk_size 16 examples/height.png```
