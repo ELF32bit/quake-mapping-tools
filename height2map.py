@@ -99,18 +99,18 @@ def write_brush_at(i, j):
 	x, y, ix, iy = (i * s, j * s, i + iw // 2, j + ih // 2)
 
 	# discarding brushes where image pixels are transparent
-	a00 = h * pixels[(ix+0)%iw, (iy+0)%ih][1]
-	a10 = h * pixels[(ix+1)%iw, (iy+0)%ih][1]
-	a01 = h * pixels[(ix+0)%iw, (iy+1)%ih][1]
-	a11 = h * pixels[(ix+1)%iw, (iy+1)%ih][1]
+	a00 = pixels[(ix+0)%iw, (iy+0)%ih][1] / 255.0
+	a10 = pixels[(ix+1)%iw, (iy+0)%ih][1] / 255.0
+	a01 = pixels[(ix+0)%iw, (iy+1)%ih][1] / 255.0
+	a11 = pixels[(ix+1)%iw, (iy+1)%ih][1] / 255.0
 	if a00 == 0.0:
 		return
 
 	# reading height values from image pixels
-	h00 = h * pixels[(ix+0)%iw, (iy+0)%ih][0] / 255.0
-	h10 = h * pixels[(ix+1)%iw, (iy+0)%ih][0] / 255.0
-	h01 = h * pixels[(ix+0)%iw, (iy+1)%ih][0] / 255.0
-	h11 = h * pixels[(ix+1)%iw, (iy+1)%ih][0] / 255.0
+	h00 = a00 * h * pixels[(ix+0)%iw, (iy+0)%ih][0] / 255.0
+	h10 = a10 * h * pixels[(ix+1)%iw, (iy+0)%ih][0] / 255.0
+	h01 = a01 * h * pixels[(ix+0)%iw, (iy+1)%ih][0] / 255.0
+	h11 = a11 * h * pixels[(ix+1)%iw, (iy+1)%ih][0] / 255.0
 
 	# snapping height values
 	if not arguments.disable_grid_snap:
