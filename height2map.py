@@ -4,8 +4,8 @@ from PIL import Image
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument("input", type=str)
-parser.add_argument("--height", type=float, default=32.0, help="|")
-parser.add_argument("--unit_size", type=float, default=32.0, help="|")
+parser.add_argument("--height", type=float, default=256.0, help="|")
+parser.add_argument("--unit_size", type=float, default=64.0, help="|")
 parser.add_argument("--grid_snap_step", type=float, default=0.125, help="|")
 parser.add_argument("--disable_grid_snap", action="store_true", help="|")
 parser.add_argument("--classname", type=str, default="func_detail", help="|")
