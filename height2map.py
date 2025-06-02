@@ -44,6 +44,7 @@ except Exception:
 
 # loading heightmap pixels
 heightmap = input_file.convert("LA")
+heightmap = heightmap.transpose(Image.FLIP_TOP_BOTTOM)
 pixels = heightmap.load()
 iw, ih = heightmap.size
 # disabling chunking
