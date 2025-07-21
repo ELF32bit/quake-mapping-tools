@@ -1,40 +1,31 @@
 # Quake mapping tools
 
 ## Convert .obj scenes to maps
-![obj2map.py](screenshots/obj2map.png)
+![obj2map.py](screenshots/obj2map.webp)
 
-```obj2map.py --info examples/scene.obj```
-```
-examples/scene.obj:
-	Objects:
-		 [01] BezierCircle
-		 [02] BezierCurve
-		 [03] Cube-convex
-		 [04] Cube.001-convex
-		 [05] Cube.002-convex
-		 [06] Cube.003-convex
-		 [07] Cube.004
-		 [08] Cylinder-convex
-		 [09] Grid-convex
-		 [10] Icosphere-convex
-		 [11] Plane
-		 [12] Suzanne
-		 [13] Torus
-	Materials:
-		BLUE
-		GREEN
-		MONKEY
-		RED
-		WHITE
-	AABB: (-640 -640 -128, 640 640 435.25)
-	Size: (1280, 1280, 563.25)
+Any triangular mesh can be converted into convex brushes used in map files.<br>
+This is achieved by extending a triangle into a pyramid along the back-facing normal.<br>
+Alternatively, meshes that have "convex" in their name can be turned into big brushes.<br>
+Scene materials are going to be discarded, unless a material list is provided.<br>
+Objects might be split into different entities and grouped together.<br>
+Line objects will be turned into **path_corner** entities.<br>
+Run the script with ```--info``` option first.<br>
 
-Material List: "BLUE;GREEN;MONKEY;RED;WHITE;"
-AABB: (-640 -640 -128, 640 640 435.25)
-Size: (1280, 1280, 563.25)
+```Bash
+python obj2map.py examples/scene.obj \
+  --material_list "64_blue_2;64_green_2;64_gold_2;64_blood_2;64_grey_1" \
+  --game Quake
 ```
 
 ## Convert heightmaps to maps
-![height2map.py](screenshots/height2map.png)
+![height2map.py](screenshots/height2map.webp)
 
-```height2map.py --material GRASS --chunk_size 16 examples/height.png```
+Seamless terrain generator with optional chunking for a faster compiling.<br>
+Map format is poorly suited for storing large terrains with multiple textures.<br>
+
+```Bash
+python height2map.py examples/height.png
+  --material "64_green_1" \
+  --chunk_size 16 \
+  --game Quake
+```
