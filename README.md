@@ -14,6 +14,7 @@ Run the script with ```--info``` option first.<br>
 ```Bash
 python obj2map.py examples/scene.obj \
   --material_list "64_blue_2;64_green_2;64_gold_2;64_blood_2;64_grey_1" \
+  --normal_offset 2.0 \
   --game Quake
 ```
 
@@ -24,7 +25,7 @@ Seamless terrain generator with optional chunking for a faster compiling.<br>
 Map format is poorly suited for storing large terrains with multiple textures.<br>
 
 ```Bash
-python height2map.py examples/height.png
+python height2map.py examples/height.png \
   --material "64_green_1" \
   --chunk_size 16 \
   --game Quake
