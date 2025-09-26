@@ -33,10 +33,16 @@ def grid_snap(v, s):
 	return math.floor(v / s + 0.5) * s
 
 # shortcuts for easier reading
-s = arguments.unit_size
 h = arguments.height
+u = arguments.unit_size
+m = arguments.material
+sm = arguments.skip_material
 o = -arguments.offset
 cs = arguments.chunk_size
+xo = arguments.x_offset
+yo = arguments.y_offset
+xs = arguments.x_scale
+ys = arguments.y_scale
 
 # trying to open input file
 input_file = None
@@ -101,21 +107,21 @@ def write_entity_properties():
 		output_file.write(f'"_tb_group" "1"\n')
 
 def write_brush_at(i, j):
-	x, y, ix, iy = (i * s, j * s, i + iw // 2, j + ih // 2)
+	x, y, ix, iy = (i * u, j * u, i + iw // 2, j + ih // 2)
 
 	# discarding brushes where image pixels are transparent
-	a00 = pixels[(ix+0)%iw, (iy+0)%ih][1] / 255.0
-	a10 = pixels[(ix+1)%iw, (iy+0)%ih][1] / 255.0
-	a01 = pixels[(ix+0)%iw, (iy+1)%ih][1] / 255.0
-	a11 = pixels[(ix+1)%iw, (iy+1)%ih][1] / 255.0
+	a00 = pixels[(ix + 0) % iw, (iy + 0) % ih][1] / 255.0
+	a10 = pixels[(ix + 1) % iw, (iy + 0) % ih][1] / 255.0
+	a01 = pixels[(ix + 0) % iw, (iy + 1) % ih][1] / 255.0
+	a11 = pixels[(ix + 1) % iw, (iy + 1) % ih][1] / 255.0
 	if a00 == 0.0:
 		return
 
 	# reading height values from image pixels
-	h00 = a00 * h * pixels[(ix+0)%iw, (iy+0)%ih][0] / 255.0
-	h10 = a10 * h * pixels[(ix+1)%iw, (iy+0)%ih][0] / 255.0
-	h01 = a01 * h * pixels[(ix+0)%iw, (iy+1)%ih][0] / 255.0
-	h11 = a11 * h * pixels[(ix+1)%iw, (iy+1)%ih][0] / 255.0
+	h00 = a00 * h * pixels[(ix + 0) % iw, (iy + 0) % ih][0] / 255.0
+	h10 = a10 * h * pixels[(ix + 1) % iw, (iy + 0) % ih][0] / 255.0
+	h01 = a01 * h * pixels[(ix + 0) % iw, (iy + 1) % ih][0] / 255.0
+	h11 = a11 * h * pixels[(ix + 1) % iw, (iy + 1) % ih][0] / 255.0
 
 	# snapping height values
 	if not arguments.disable_grid_snap:
@@ -125,19 +131,19 @@ def write_brush_at(i, j):
 		h11 = grid_snap(h11, arguments.grid_snap_step)
 
 	output_file.write("{\n")
-	output_file.write(f"( {x:g} {y:g} {o:g} ) ( {x:g} {y+s:g} {o:g} ) ( {x:g} {y:g} {h00:g} ) {arguments.skip_material} [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n")
-	output_file.write(f"( {x:g} {y:g} {o:g} ) ( {x:g} {y:g} {h00:g} ) ( {x+s:g} {y:g} {o:g} ) {arguments.skip_material} [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n")
-	output_file.write(f"( {x:g} {y:g} {o:g} ) ( {x+s:g} {y:g} {o:g} ) ( {x:g} {y+s:g} {o:g} ) {arguments.skip_material} [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n")
-	output_file.write(f"( {x:g} {y:g} {h00:g} ) ( {x:g} {y+s:g} {h01:g} ) ( {x+s:g} {y:g} {h10:g} ) {arguments.material} [ 1 0 0 {arguments.x_offset:g} ] [ 0 -1 0 {arguments.y_offset:g} ] 0 {arguments.x_scale:g} {arguments.y_scale:g}\n")
-	output_file.write(f"( {x:g} {y+s:g} {o:g} ) ( {x+s:g} {y:g} {o:g} ) ( {x+s:g} {y:g} {h10:g} ) {arguments.skip_material} [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n")
+	output_file.write(f"( {x:g} {y:g} {o:g} ) ( {x:g} {y+u:g} {o:g} ) ( {x:g} {y:g} {h00:g} ) {sm} [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n")
+	output_file.write(f"( {x:g} {y:g} {o:g} ) ( {x:g} {y:g} {h00:g} ) ( {x+u:g} {y:g} {o:g} ) {sm} [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n")
+	output_file.write(f"( {x:g} {y:g} {o:g} ) ( {x+u:g} {y:g} {o:g} ) ( {x:g} {y+u:g} {o:g} ) {sm} [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n")
+	output_file.write(f"( {x:g} {y:g} {h00:g} ) ( {x:g} {y+u:g} {h01:g} ) ( {x+u:g} {y:g} {h10:g} ) {m} [ 1 0 0 {xo:g} ] [ 0 -1 0 {yo:g} ] 0 {xs:g} {ys:g}\n")
+	output_file.write(f"( {x:g} {y+u:g} {o:g} ) ( {x+u:g} {y:g} {o:g} ) ( {x+u:g} {y:g} {h10:g} ) {sm} [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n")
 	output_file.write("}\n")
 
 	output_file.write("{\n")
-	output_file.write(f"( {x:g} {y+s:g} {o:g} ) ( {x+s:g} {y:g} {h10:g} ) ( {x+s:g} {y:g} {o:g} ) {arguments.skip_material} [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n")
-	output_file.write(f"( {x:g} {y:g} {o:g} ) ( {x+s:g} {y:g} {o:g} ) ( {x:g} {y+s:g} {o:g} ) {arguments.skip_material} [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n")
-	output_file.write(f"( {x+s:g} {y+s:g} {h11:g} ) ( {x+s:g} {y:g} {h10:g} ) ( {x:g} {y+s:g} {h01:g} ) {arguments.material} [ 1 0 0 {arguments.x_offset:g} ] [ 0 -1 0 {arguments.y_offset:g} ] 0 {arguments.x_scale:g} {arguments.y_scale:g}\n")
-	output_file.write(f"( {x:g} {y+s:g} {o:g} ) ( {x+s:g} {y+s:g} {o:g} ) ( {x:g} {y+s:g} {h01:g} ) {arguments.skip_material} [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n")
-	output_file.write(f"( {x+s:g} {y:g} {o:g} ) ( {x+s:g} {y:g} {h10:g} ) ( {x+s:g} {y+s:g} {o:g} ) {arguments.skip_material} [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n")
+	output_file.write(f"( {x:g} {y+u:g} {o:g} ) ( {x+u:g} {y:g} {h10:g} ) ( {x+u:g} {y:g} {o:g} ) {sm} [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n")
+	output_file.write(f"( {x:g} {y:g} {o:g} ) ( {x+u:g} {y:g} {o:g} ) ( {x:g} {y+u:g} {o:g} ) {sm} [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n")
+	output_file.write(f"( {x+u:g} {y+u:g} {h11:g} ) ( {x+u:g} {y:g} {h10:g} ) ( {x:g} {y+u:g} {h01:g} ) {m} [ 1 0 0 {xo:g} ] [ 0 -1 0 {yo:g} ] 0 {xs:g} {ys:g}\n")
+	output_file.write(f"( {x:g} {y+u:g} {o:g} ) ( {x+u:g} {y+u:g} {o:g} ) ( {x:g} {y+u:g} {h01:g} ) {sm} [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n")
+	output_file.write(f"( {x+u:g} {y:g} {o:g} ) ( {x+u:g} {y:g} {h10:g} ) ( {x+u:g} {y+u:g} {o:g} ) {sm} [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n")
 	output_file.write("}\n")
 
 if arguments.chunk_size > 0:
