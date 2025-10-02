@@ -1,7 +1,7 @@
 # Quake mapping tools
 
 ## Convert .obj scenes to maps
-![obj2map.py](screenshots/obj2map.webp)
+![obj2map.py](screenshots/obj2map.webp)<br>
 
 Any triangular mesh can be converted into convex brushes used in map files.<br>
 This is achieved by extending a triangle into a pyramid along the back-facing normal.<br>
@@ -19,7 +19,7 @@ python obj2map.py examples/scene.obj \
 ```
 
 ## Convert heightmaps to maps
-![height2map.py](screenshots/height2map.webp)
+![height2map.py](screenshots/height2map.webp)<br>
 
 Seamless terrain generator with optional chunking for a faster compiling.<br>
 Map format is poorly suited for storing large terrains with multiple textures.<br>
