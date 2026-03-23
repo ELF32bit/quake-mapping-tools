@@ -5,17 +5,17 @@
 Any triangular mesh can be converted into convex brushes used in map files.<br>
 This is achieved by extending a triangle into a pyramid along the back-facing normal.<br>
 Alternatively, meshes that have "convex" in their name can be turned into big brushes.<br>
-Scene materials are going to be discarded, unless a material list is provided.<br>
-Objects might be split into different entities and grouped together.<br>
-Line objects will be turned into **path_corner** entities.<br>
-Run the script with ```--info``` option first.<br>
-
 ```Bash
 python obj2map.py examples/scene.obj \
   --material_list "64_blue_2;64_green_2;64_gold_2;64_blood_2;64_grey_1" \
   --normal_offset 2.0 \
   --game Quake
 ```
+Objects might be split into different entities and grouped together.<br>
+Multiple object files in the same input directory will be put on different layers.<br>
+Scene materials are going to be discarded, unless a material list is provided.<br>
+Line objects will be turned into **path_corner** entities.<br>
+Run the script with ```--info``` option first.<br>
 
 ## Convert heightmaps to maps
 ![height2map.py](screenshots/height2map.webp)<br>

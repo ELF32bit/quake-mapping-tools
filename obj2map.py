@@ -23,6 +23,7 @@ parser.add_argument("--disable_sorting_objects", action="store_true", help="|")
 parser.add_argument("--disable_sorting_materials", action="store_true", help="|")
 parser.add_argument("--disable_smooth_groups", action="store_true", help="|")
 parser.add_argument("--disable_grid_snap", action="store_true", help="|")
+parser.add_argument("--disable_layers", action="store_true", help="|")
 parser.add_argument("--epsilon", type=float, default=0.001, help="|")
 parser.add_argument("--game", type=str, default="Generic", help="|")
 parser.add_argument("--info", action="store_true", help="|")
@@ -265,7 +266,7 @@ if arguments.info:
 		for material_index in range(1, len(data["materials"])):
 			print("\t\t" + data["materials"][material_index])
 
-		# calculating AABB 
+		# calculating AABB
 		box = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 		for vertex in data["vertices"]:
 			for index in range(3):
@@ -333,7 +334,7 @@ except Exception:
 
 
 
-def write_group_entity(name, parent_group_id = None):
+def write_group_entity(name, parent_group_id = None, parent_group_is_layer = False):
 	global map_group_count
 	map_group_count += 1
 	output_file.write("{\n")
@@ -342,7 +343,23 @@ def write_group_entity(name, parent_group_id = None):
 	output_file.write(f'"_tb_name" "{name}"\n')
 	output_file.write(f'"_tb_id" "{map_group_count}"\n')
 	if parent_group_id != None:
-		output_file.write(f'"_tb_group" "{parent_group_id}"\n')
+		if parent_group_is_layer:
+			output_file.write(f'"_tb_layer" "{parent_group_id}"\n')
+		else:
+			output_file.write(f'"_tb_group" "{parent_group_id}"\n')
+	output_file.write("}\n")
+	return map_group_count
+
+
+
+def write_layer_group_entity(name):
+	global map_group_count
+	map_group_count += 1
+	output_file.write("{\n")
+	output_file.write('"classname" "func_group"\n')
+	output_file.write('"_tb_type" "_tb_layer"\n')
+	output_file.write(f'"_tb_name" "{name}"\n')
+	output_file.write(f'"_tb_id" "{map_group_count}"\n')
 	output_file.write("}\n")
 	return map_group_count
 
@@ -489,6 +506,7 @@ if not arguments.append_to_output:
 		output_file.write("// Format: Standard\n")
 
 # writing entities
+layer_groups = {}
 if arguments.disable_objects:
 	for data_index, data in enumerate(input_data):
 		smooth_groups = {}
@@ -510,7 +528,11 @@ else:
 					smooth_groups[triangle[3]].append(triangle)
 
 			if input_is_directory and len(smooth_groups) > 0 and data_group_id == None:
-				data_group_id = write_group_entity(data["name"], None)
+				layer_group_id = None
+				if not arguments.disable_layers:
+					layer_group_id = write_layer_group_entity(data["name"])
+				data_group_id = write_group_entity(data["name"], layer_group_id, layer_group_id != None)
+				layer_groups[data["name"]] = layer_group_id
 
 			object_is_convex = False
 			if not arguments.disable_convex_objects and len(smooth_groups) > 0:
@@ -547,10 +569,11 @@ for data_index, data in enumerate(input_data):
 				path_corners[line_object][vertex_index][1] = next_vertex_index
 				targeted_path_corners[line_object].add(next_vertex_index)
 
+	layer_group_id = layer_groups.get(data["name"], None)
 	for object_name in path_corners:
 		path_group_name = object_name if object_name != "" else "paths"
 		adjusted_object_name = object_name if object_name != "" else "unnamed"
-		path_group_id = write_group_entity(path_group_name, None)
+		path_group_id = write_group_entity(path_group_name, layer_group_id, layer_group_id != None)
 
 		path_start_index = -1
 		for index in path_corners[object_name]:
