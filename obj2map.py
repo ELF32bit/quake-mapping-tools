@@ -2,33 +2,33 @@
 import os, argparse, math, re
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument("input", type=str, help = "|")
-parser.add_argument("--scale", type=float, default=1.0, help="|")
-parser.add_argument("--unit_size", type=float, default=32.0, help="|")
-parser.add_argument("--normal_offset", type=float, default=1.0, help="|")
-parser.add_argument("--secondary_normal_offset", type=float, help="|")
-parser.add_argument("--secondary_normal_brush", action="store_true", help="|")
-parser.add_argument("--grid_snap_step", type=float, default=0.125, help="|")
-parser.add_argument("--classname", type=str, default="func_detail", help="|")
-parser.add_argument("--material", type=str, default="__TB_empty", help="|")
-parser.add_argument("--material_list", type=str, default="", help="|")
-parser.add_argument("--skip_material", type=str, default="SKIP", help="|")
-parser.add_argument("--skip_material_list", type=str, default="", help="|")
-parser.add_argument("--vertex_color_materials", action="store_true", help="|")
-parser.add_argument("--phong_angle", type=float, default=89.0, help="|")
-parser.add_argument("--uv_valve", action="store_true", help="|")
-parser.add_argument("--disable_objects", action="store_true", help="|")
-parser.add_argument("--disable_convex_objects", action="store_true", help="|")
-parser.add_argument("--disable_sorting_objects", action="store_true", help="|")
-parser.add_argument("--disable_sorting_materials", action="store_true", help="|")
-parser.add_argument("--disable_smooth_groups", action="store_true", help="|")
-parser.add_argument("--disable_grid_snap", action="store_true", help="|")
-parser.add_argument("--disable_layers", action="store_true", help="|")
-parser.add_argument("--epsilon", type=float, default=0.001, help="|")
-parser.add_argument("--game", type=str, default="Generic", help="|")
-parser.add_argument("--info", action="store_true", help="|")
-parser.add_argument("--append_to_output", action="store_true", help="|")
-parser.add_argument("--output", type=str, help="|")
+parser.add_argument("input", type=str, help="input object or a directory of objects")
+parser.add_argument("--scale", type=float, default=1.0, help="simple way to scale objects")
+parser.add_argument("--unit_size", type=float, default=32.0, help="objects unit size in map units")
+parser.add_argument("--normal_offset", type=float, default=1.0, help="pyramids height in map units")
+parser.add_argument("--secondary_normal_offset", type=float, help="if provided, will create bipyramids")
+parser.add_argument("--secondary_normal_brush", action="store_true", help="will split bipyramids into pyramids")
+parser.add_argument("--grid_snap_step", type=float, default=0.125, help="coordinates snapping in map units")
+parser.add_argument("--classname", type=str, default="func_detail", help="default classname to write")
+parser.add_argument("--material", type=str, default="__TB_empty", help="default material name to write")
+parser.add_argument("--material_list", type=str, default="", help="semicolon separated names from --info")
+parser.add_argument("--skip_material", type=str, default="SKIP", help="material name for other pyramids faces")
+parser.add_argument("--skip_material_list", type=str, default="", help="same as material list, used for bipyramids")
+parser.add_argument("--vertex_color_materials", action="store_true", help="use unique vertex colors as materials")
+parser.add_argument("--phong_angle", type=float, default=89.0, help="smooth shading split angle")
+parser.add_argument("--uv_valve", action="store_true", help="use valve format when writing uvs")
+parser.add_argument("--disable_objects", action="store_true", help="merge objects into a single object")
+parser.add_argument("--disable_convex_objects", action="store_true", help="ignore convex/concave in objects names")
+parser.add_argument("--disable_sorting_objects", action="store_true", help="if built-in sorting fails")
+parser.add_argument("--disable_sorting_materials", action="store_true", help="if built-in sorting fails")
+parser.add_argument("--disable_smooth_groups", action="store_true", help="don't split objects into entities")
+parser.add_argument("--disable_grid_snap", action="store_true", help="use precise coordinates for geometry")
+parser.add_argument("--disable_layers", action="store_true", help="will not write TrechBroom layers")
+parser.add_argument("--epsilon", type=float, default=0.001, help="in map units for convex objects")
+parser.add_argument("--game", type=str, default="Generic", help="game type for TrenchBroom")
+parser.add_argument("--info", action="store_true", help="print objects information")
+parser.add_argument("--append_to_output", action="store_true")
+parser.add_argument("--output", type=str)
 arguments = parser.parse_args()
 
 # validating input arguments
@@ -250,21 +250,21 @@ if arguments.info:
 	for data_index, data in enumerate(input_data):
 		print(f'{data["path"]}:')
 
-		print("\tObjects:")
+		print("  Objects:")
 		if input_is_directory:
 			frames = len(str(len(input_data)))
 			for object_index in range(1, len(data["objects"])):
-				print(f"\t\t [{str(data_index + 1).zfill(frames)}]", end = " ")
+				print(f"    [{str(data_index + 1).zfill(frames)}]", end = " ")
 				print(data["objects"][object_index])
 		else:
 			frames = len(str(len(data["objects"]) - 1))
 			for object_index in range(1, len(data["objects"])):
-				print(f"\t\t [{str(object_index).zfill(frames)}]", end = " ")
+				print(f"    [{str(object_index).zfill(frames)}]", end = " ")
 				print(data["objects"][object_index])
 
-		print("\tMaterials:")
+		print("  Materials:")
 		for material_index in range(1, len(data["materials"])):
-			print("\t\t" + data["materials"][material_index])
+			print("    " + data["materials"][material_index])
 
 		# calculating AABB
 		box = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
@@ -279,8 +279,8 @@ if arguments.info:
 		if not arguments.disable_grid_snap:
 			box[0], box[1], box[2] = tuple(vector3_grid_snap(box[0:3], arguments.grid_snap_step))
 			box[3], box[4], box[5] = tuple(vector3_grid_snap(box[3:6], arguments.grid_snap_step))
-		print(f"\tAABB: ({box[0]:g} {box[1]:g} {box[2]:g}, {box[3]:g} {box[4]:g} {box[5]:g})")
-		print(f"\tSize: ({(box[3] - box[0]):g}, {(box[4] - box[1]):g}, {(box[5] - box[2]):g})\n")
+		print(f"  AABB: ({box[0]:g} {box[1]:g} {box[2]:g}, {box[3]:g} {box[4]:g} {box[5]:g})")
+		print(f"  Size: ({(box[3] - box[0]):g}, {(box[4] - box[1]):g}, {(box[5] - box[2]):g})\n")
 
 	print('Material List: "', end = "")
 	for material_index in range(1, len(map_materials)):
