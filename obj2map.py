@@ -291,7 +291,7 @@ if arguments.info:
 		gbox[0], gbox[1], gbox[2] = tuple(vector3_grid_snap(gbox[0:3], arguments.grid_snap_step))
 		gbox[3], gbox[4], gbox[5] = tuple(vector3_grid_snap(gbox[3:6], arguments.grid_snap_step))
 	print(f"AABB: ({gbox[0]:g} {gbox[1]:g} {gbox[2]:g}, {gbox[3]:g} {gbox[4]:g} {gbox[5]:g})")
-	print(f"Size: ({(gbox[3] - gbox[0]):g}, {(gbox[4] - gbox[1]):g}, {(gbox[5] - gbox[2]):g})")
+	print(f"Size: ({(gbox[3] - gbox[0]):g} {(gbox[4] - gbox[1]):g} {(gbox[5] - gbox[2]):g})")
 	quit()
 
 # creating material lists
